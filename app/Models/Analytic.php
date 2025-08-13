@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Dotenv\Repository\Adapter\GuardedWriter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Analytic extends Model
 {
-    protected $guarded = [''];
+    protected $guarded = []; 
 
     public function user() : BelongsTo
     {
