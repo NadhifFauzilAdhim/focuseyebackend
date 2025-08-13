@@ -18,6 +18,7 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
             $table->string('image_path')->nullable(); 
+            $table->dateTime('capture_time'); 
             $table->timestamps();
         });
     }

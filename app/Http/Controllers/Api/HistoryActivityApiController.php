@@ -8,6 +8,12 @@ use App\Models\Analytic;
 
 class HistoryActivityApiController extends Controller
 {
+    /**
+     * Menyimpan data aktivitas baru.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -29,5 +35,27 @@ class HistoryActivityApiController extends Controller
             'message' => 'Data capture fokus berhasil disimpan',
             'data'    => $analytic
         ], 201);
+    }
+
+    /**
+     * Mengambil riwayat data aktivitas untuk pengguna yang diautentikasi.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        // Mengambil data analitik milik pengguna yang sedang login,
+        // diurutkan berdasarkan data yang paling baru.
+        $analytics = Analytic::where('user_id', $request->user()->id)
+                             ->orderBy('created_at', 'desc')
+                             ->get();
+
+        return response()->json([
+            'success' => true,
+            'status'  => 200,
+            'message' => 'Data riwayat aktivitas berhasil diambil',
+            'data'    => $analytics
+        ], 200);
     }
 }

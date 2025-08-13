@@ -6,17 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class AuthApiController extends Controller
 {
+    /**
+     * Handle user registration request.
+     */
     public function register(Request $request)
     {
         try {
             $validatedData = $request->validate([
-                'name' => 'required|max:255|min:3',
-                'username' => 'required|min:3|max:255|unique:users|regex:/^\S*$/u',
-                'email' => 'required|email:dns|unique:users',
-                'password' => 'required|min:5|max:255',
+                'name' => 'required|string|max:255|min:3',
+                'username' => 'required|string|min:3|max:255|unique:users|regex:/^\S*$/u',
+                'email' => 'required|string|email:dns|unique:users',
+                'password' => 'required|string|min:5|max:255',
                 'role' => 'in:user,student,teacher,admin',
                 'avatar' => 'nullable|string'
             ]);
@@ -35,41 +39,62 @@ class AuthApiController extends Controller
             return response()->json([
                 'success' => true,
                 'status' => 201,
-                'message' => 'Berhasil, Email verifikasi dikirimkan ke email Anda.',
+                'message' => 'Registrasi berhasil. Silakan cek email Anda untuk verifikasi.',
                 'user' => $user,
             ], 201);
+
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data yang diberikan tidak valid.',
+                'errors' => $e->errors(), 
+            ], 422); 
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Pendaftaran gagal',
+                'message' => 'Registrasi gagal karena kesalahan server.',
                 'error' => $e->getMessage(),
-            ], 400);
+            ], 500);
         }
     }
 
+    /**
+     * Handle user login request.
+     */
     public function login(Request $request)
     {
         try {
-            $validatedData = $request->validate([
+            $request->validate([
                 'email' => 'required|string|email',
                 'password' => 'required|string',
             ]);
 
-            $user = User::where('email', $validatedData['email'])->first();
+            $user = User::where('email', $request->email)->first();
 
-            if (!$user || !Hash::check($validatedData['password'], $user->password)) {
+            if (!$user) {
                 return response()->json([
-                    'message' => 'The provided credentials are incorrect.',
+                    'success' => false,
+                    'message' => 'Email atau password tidak ditemukan.',
+                ], 404); 
+            }
+            if (!Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email atau password yang Anda masukkan salah.',
                 ], 401);
             }
-
+            if (!$user->hasVerifiedEmail()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Login gagal. Silakan verifikasi alamat email Anda terlebih dahulu.'
+                ], 403);
+            }
             $token = $user->createToken('auth_token')->plainTextToken;
-
             return response()->json([
                 'success' => true,
                 'status' => 200,
-                'message' => 'Login successful',
+                'message' => 'Login berhasil',
                 'access_token' => $token,
                 'token_type' => 'Bearer',
                 'user' => [
@@ -80,30 +105,41 @@ class AuthApiController extends Controller
                     'avatar' => $user->avatar,
                     'role' => $user->role
                 ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Login failed',
-                'error' => $e->getMessage(),
-            ], 400);
-        }
-    }
+            ], 200);
 
-    public function logout(Request $request)
-    {
-        try {
-            $request->user()->tokens()->delete();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Logged out successfully',
-            ]);
+        } catch (ValidationException $e) {
+             return response()->json([
+                'success' => false,
+                'message' => 'Data yang diberikan tidak valid.',
+                'errors' => $e->errors(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Logout failed',
+                'message' => 'Login gagal karena kesalahan server.',
                 'error' => $e->getMessage(),
-            ], 400);
+            ], 500);
+        }
+    }
+
+    /**
+     * Handle user logout request.
+     */
+    public function logout(Request $request)
+    {
+        try {
+            $request->user()->currentAccessToken()->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout berhasil',
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout gagal.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
     }
 }
