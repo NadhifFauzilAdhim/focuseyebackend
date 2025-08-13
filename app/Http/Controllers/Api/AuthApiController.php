@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthApiController extends Controller
 {
-    // Register a new user
     public function register(Request $request)
     {
         try {
