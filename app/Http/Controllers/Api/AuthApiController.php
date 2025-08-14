@@ -19,7 +19,7 @@ class AuthApiController extends Controller
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255|min:3',
                 'username' => 'required|string|min:3|max:255|unique:users|regex:/^\S*$/u',
-                'email' => 'required|string|email:dns|unique:users',
+                'email' => 'required|string|email:dns|unique:users|usercheck:block_disposable',
                 'password' => 'required|string|min:5|max:255',
                 'role' => 'in:user,student,teacher,admin',
                 'avatar' => 'nullable|string'

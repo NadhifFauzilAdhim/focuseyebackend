@@ -45,8 +45,6 @@ class HistoryActivityApiController extends Controller
      */
     public function index(Request $request)
     {
-        // Mengambil data analitik milik pengguna yang sedang login,
-        // diurutkan berdasarkan data yang paling baru.
         $analytics = Analytic::where('user_id', $request->user()->id)
                              ->orderBy('created_at', 'desc')
                              ->get();
