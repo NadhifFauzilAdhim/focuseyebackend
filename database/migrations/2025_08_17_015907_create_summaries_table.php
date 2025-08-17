@@ -11,17 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('analytics', function (Blueprint $table) {
+        Schema::create('summaries', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')
-                  ->constrained()
+            $table->foreignId('analytic_id')
+                  ->constrained('analytics')
                   ->onUpdate('cascade')
                   ->onDelete('cascade');
-            $table->unsignedInteger('duration')->nullable(); 
-            $table->unsignedInteger('focus_duration')->default(0); 
-            $table->unsignedInteger('unfocus_duration')->default(0); 
-            $table->dateTime('start_time')->nullable();
-            $table->dateTime('end_time')->nullable();
+            $table->text('ai_summary')->nullable(); 
             $table->timestamps();
         });
     }
@@ -31,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('analytics');
+        Schema::dropIfExists('summaries');
     }
 };

@@ -29,7 +29,6 @@ class CaptureHistoryApiController extends Controller
         $fileName = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $directory = 'captures';
         
-        // Simpan gambar menggunakan Laravel Storage facade
         Storage::disk('public')->put($directory . '/' . $fileName, (string) $image->encode());
 
         $capture = CaptureHistory::create([

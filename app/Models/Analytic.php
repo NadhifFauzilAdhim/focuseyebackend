@@ -18,4 +18,8 @@ class Analytic extends Model
     {
         return $this->hasMany(CaptureHistory::class);
     }
+    public function summary()
+    {
+        return $this->hasOne(Summary::class);
+    }
 }

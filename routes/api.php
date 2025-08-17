@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthApiController;
 use App\Http\Controllers\Api\CaptureHistoryApiController;
 use App\Http\Controllers\Api\HistoryActivityApiController;
-
+use App\Http\Controllers\Api\SummaryApiController;
 
 Route::post('/v1/register', [AuthApiController::class, 'register']);
 Route::post('/v1/login', [AuthApiController::class, 'login']);
@@ -17,6 +17,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/v1/image/captures', [CaptureHistoryApiController::class, 'store']);
     Route::get('/v1/image/captures/{analytic_id}', [CaptureHistoryApiController::class, 'index']);
     Route::get('/v1/logout', [AuthApiController::class, 'logout']);
+    Route::get('/v1/analytics/{analytic}/analyze', [SummaryApiController::class, 'generateSummary']);
 });
 
 Route::get('/user', function (Request $request) {

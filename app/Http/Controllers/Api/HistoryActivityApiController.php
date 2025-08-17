@@ -21,6 +21,8 @@ class HistoryActivityApiController extends Controller
             'duration'         => 'required|integer|min:0',
             'focus_duration'   => 'required|integer|min:0',
             'unfocus_duration' => 'required|integer|min:0',
+            'start_time'      => 'required|date_format:Y-m-d H:i:s',
+            'end_time'        => 'required|date_format:Y-m-d H:i:s|after_or_equal:start_time',
         ]);
 
         $analytic = Analytic::create([
@@ -28,6 +30,8 @@ class HistoryActivityApiController extends Controller
             'duration'         => $validated['duration'],
             'focus_duration'   => $validated['focus_duration'],
             'unfocus_duration' => $validated['unfocus_duration'],
+            'start_time'      => $validated['start_time'],
+            'end_time'        => $validated['end_time'],
         ]);
 
         return response()->json([
@@ -80,7 +84,6 @@ class HistoryActivityApiController extends Controller
                 Storage::disk('public')->delete($capture->image_path);
             }
         }
-
         $analytic->delete();
 
         return response()->json([
