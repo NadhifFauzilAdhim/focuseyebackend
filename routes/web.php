@@ -10,3 +10,12 @@ Route::get('/', function () {
 Route::get('/email/verify/{id}/{hash}', [RegisterController::class, 'emailVerificationRequest'])
         ->middleware('signed')
         ->name('verification.verify');
+
+Route::get('/email/verify-success', [RegisterController::class, 'emailVerificationSuccess'])
+        ->name('verification.success');
+
+
+
+
+    
+        

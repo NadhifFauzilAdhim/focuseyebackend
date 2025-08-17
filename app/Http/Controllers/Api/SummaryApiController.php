@@ -40,7 +40,7 @@ class SummaryApiController extends Controller
 
         try {
             Log::info("Menghasilkan ringkasan baru via API untuk analytic_id: {$analytic->id}");
-            $result = Gemini::generativeModel(model: 'gemini-1.5-flash-latest')
+            $result = Gemini::generativeModel(model: 'gemini-2.0-flash')
                             ->generateContent($prompt);
             $aiSummaryText = $result->text();
         } catch (\Exception $e) {

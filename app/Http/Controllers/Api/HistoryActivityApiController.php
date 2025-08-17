@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Analytic;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache; // 1. Tambahkan use statement untuk Cache
 
 class HistoryActivityApiController extends Controller
 {
@@ -21,8 +22,8 @@ class HistoryActivityApiController extends Controller
             'duration'         => 'required|integer|min:0',
             'focus_duration'   => 'required|integer|min:0',
             'unfocus_duration' => 'required|integer|min:0',
-            'start_time'      => 'required|date_format:Y-m-d H:i:s',
-            'end_time'        => 'required|date_format:Y-m-d H:i:s|after_or_equal:start_time',
+            'start_time'       => 'required|date_format:Y-m-d H:i:s',
+            'end_time'         => 'required|date_format:Y-m-d H:i:s|after_or_equal:start_time',
         ]);
 
         $analytic = Analytic::create([
@@ -30,9 +31,12 @@ class HistoryActivityApiController extends Controller
             'duration'         => $validated['duration'],
             'focus_duration'   => $validated['focus_duration'],
             'unfocus_duration' => $validated['unfocus_duration'],
-            'start_time'      => $validated['start_time'],
-            'end_time'        => $validated['end_time'],
+            'start_time'       => $validated['start_time'],
+            'end_time'         => $validated['end_time'],
         ]);
+
+        $cacheKey = 'history_activity_user_' . $request->user()->id;
+        Cache::forget($cacheKey);
 
         return response()->json([
             'success' => true,
@@ -43,16 +47,19 @@ class HistoryActivityApiController extends Controller
     }
 
     /**
-     * Mengambil riwayat data aktivitas untuk pengguna yang diautentikasi.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
-        $analytics = Analytic::where('user_id', $request->user()->id)
-                             ->orderBy('created_at', 'desc')
-                             ->get();
+        $cacheKey = 'history_activity_user_' . $request->user()->id;
+        $duration = 60 * 60; 
+        $analytics = Cache::remember($cacheKey, $duration, function () use ($request) {
+            return Analytic::where('user_id', $request->user()->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        });
 
         return response()->json([
             'success' => true,
@@ -63,7 +70,6 @@ class HistoryActivityApiController extends Controller
     }
 
     /**
-     * Menghapus data aktivitas beserta file gambar terkait.
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\Models\Analytic  $analytic
@@ -74,7 +80,7 @@ class HistoryActivityApiController extends Controller
         if ($request->user()->id !== $analytic->user_id) {
             return response()->json([
                 'success' => false,
-                'status'  => 403, 
+                'status'  => 403,
                 'message' => 'Akses ditolak. Anda tidak memiliki izin untuk menghapus data ini.',
             ], 403);
         }
@@ -85,6 +91,9 @@ class HistoryActivityApiController extends Controller
             }
         }
         $analytic->delete();
+
+        $cacheKey = 'history_activity_user_' . $request->user()->id;
+        Cache::forget($cacheKey);
 
         return response()->json([
             'success' => true,
