@@ -94,7 +94,12 @@ class HistoryActivityApiController extends Controller
 
         $cacheKey = 'history_activity_user_' . $request->user()->id;
         Cache::forget($cacheKey);
-
+        
+        $captureCacheKey = 'capture_history_analytic_' . $analytic->id;
+        if( Cache::has($captureCacheKey) ) {
+            Cache::forget($captureCacheKey);
+        }
+        
         return response()->json([
             'success' => true,
             'status'  => 200,
