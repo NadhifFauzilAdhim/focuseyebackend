@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class NewsApiService
 {
@@ -23,9 +24,10 @@ class NewsApiService
      */
     public function fetchNews(string $query): array
     {
+        $fromDate = Carbon::now()->subDays(7)->format('Y-m-d');
         $response = Http::get($this->baseUrl, [
             'q' => $query,
-            'from' => '2025-08-07',
+            'from' => $fromDate,
             'sortBy' => 'publishedAt',
             'apiKey' => $this->apiKey,
         ]);
