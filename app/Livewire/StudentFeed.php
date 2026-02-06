@@ -2,8 +2,8 @@
 
 namespace App\Livewire;
 
-use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Component;
 
 class StudentFeed extends Component
 {
@@ -13,10 +13,8 @@ class StudentFeed extends Component
         $students = Auth::user()->students()->get();
 
         foreach ($students as $student) {
-            // Get latest analytic
             $latestAnalytic = $student->analytics()->latest()->first();
 
-            // Defaults
             $status = 'OFFLINE';
             $score = 0;
             $time = now()->format('h:i A');
@@ -26,7 +24,6 @@ class StudentFeed extends Component
             if ($latestAnalytic) {
                 $time = $latestAnalytic->created_at->format('h:i A');
 
-                // Calculate score
                 if ($latestAnalytic->duration > 0) {
                     $score_val = ($latestAnalytic->focus_duration / $latestAnalytic->duration) * 100;
                     $score = round($score_val);
@@ -34,7 +31,6 @@ class StudentFeed extends Component
                     $score = 0;
                 }
 
-                // Determine status based on score (mock logic for now, real logic might depend on threshold)
                 if ($score >= 70) {
                     $status = 'FOCUSED';
                 } elseif ($score >= 40) {
@@ -43,12 +39,9 @@ class StudentFeed extends Component
                     $status = 'DISTRACTED';
                 }
 
-                // Get latest capture for image/eye status
                 $latestCapture = $latestAnalytic->captureHistory()->latest()->first();
                 if ($latestCapture) {
-                    // Assuming we might have eye status in future, for now mock based on status
                     $eyeOpen = $status !== 'DISTRACTED';
-                    // Use capture image if available, else avatar
                     if ($latestCapture->image_path) {
                         $image = asset('storage/'.$latestCapture->image_path);
                     }
@@ -64,7 +57,7 @@ class StudentFeed extends Component
                 'score' => $score,
                 'time' => $time,
                 'eye_open' => $eyeOpen,
-            ];  
+            ];
         }
 
         return view('livewire.student-feed', ['students' => $studentsData]);

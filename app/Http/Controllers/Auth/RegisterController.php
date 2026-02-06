@@ -27,7 +27,7 @@ class RegisterController extends Controller
             'username' => $validatedData['username'],
             'email' => $validatedData['email'],
             'password' => \Illuminate\Support\Facades\Hash::make($validatedData['password']),
-            'role' => 'user',
+            'role' => 'teacher',
         ]);
 
         auth()->login($user);

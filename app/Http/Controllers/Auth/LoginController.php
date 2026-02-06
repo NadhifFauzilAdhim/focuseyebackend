@@ -23,6 +23,16 @@ class LoginController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
+            if (Auth::user()->role !== 'teacher') {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors([
+                    'email' => 'Only teachers can access the dashboard.',
+                ])->onlyInput('email');
+            }
+
             return redirect()->intended('/')->with('success', 'Welcome back!');
         }
 

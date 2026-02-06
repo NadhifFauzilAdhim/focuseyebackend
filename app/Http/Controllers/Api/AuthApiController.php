@@ -22,7 +22,7 @@ class AuthApiController extends Controller
                 'email' => 'required|string|email:dns|unique:users|usercheck:block_disposable',
                 'password' => 'required|string|min:5|max:255',
                 'role' => 'in:user,student,teacher,admin',
-                'avatar' => 'nullable|string'
+                'avatar' => 'nullable|string',
             ]);
 
             $user = User::create([
@@ -30,7 +30,7 @@ class AuthApiController extends Controller
                 'username' => $validatedData['username'],
                 'email' => $validatedData['email'],
                 'password' => Hash::make($validatedData['password']),
-                'role' => $validatedData['role'] ?? 'user',
+                'role' => $validatedData['role'] ?? 'student',
                 'avatar' => $validatedData['avatar'] ?? null,
             ]);
 
@@ -47,8 +47,8 @@ class AuthApiController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Data yang diberikan tidak valid.',
-                'errors' => $e->errors(), 
-            ], 422); 
+                'errors' => $e->errors(),
+            ], 422);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -72,25 +72,26 @@ class AuthApiController extends Controller
 
             $user = User::where('email', $request->email)->first();
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Email atau password tidak ditemukan.',
-                ], 404); 
+                ], 404);
             }
-            if (!Hash::check($request->password, $user->password)) {
+            if (! Hash::check($request->password, $user->password)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Email atau password yang Anda masukkan salah.',
                 ], 401);
             }
-            if (!$user->hasVerifiedEmail()) {
+            if (! $user->hasVerifiedEmail()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Login gagal. Silakan verifikasi alamat email Anda terlebih dahulu.'
+                    'message' => 'Login gagal. Silakan verifikasi alamat email Anda terlebih dahulu.',
                 ], 403);
             }
             $token = $user->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'success' => true,
                 'status' => 200,
@@ -103,12 +104,12 @@ class AuthApiController extends Controller
                     'name' => $user->name,
                     'username' => $user->username,
                     'avatar' => $user->avatar,
-                    'role' => $user->role
-                ]
+                    'role' => $user->role,
+                ],
             ], 200);
 
         } catch (ValidationException $e) {
-             return response()->json([
+            return response()->json([
                 'success' => false,
                 'message' => 'Data yang diberikan tidak valid.',
                 'errors' => $e->errors(),
@@ -129,6 +130,7 @@ class AuthApiController extends Controller
     {
         try {
             $request->user()->currentAccessToken()->delete();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Logout berhasil',
